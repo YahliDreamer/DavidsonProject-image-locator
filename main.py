@@ -47,13 +47,13 @@ api_key = "037aa4ce80f1e408c081476a8669b0b2aaac654acdedadc36657392675199700"
 image_url = "https://upload.wikimedia.org/wikipedia/commons/d/da/Britney_Spears_2013_%28Straighten_Crop%29.jpg"
 if __name__ == '__main__':
     # Loading the haar cascade algorithm file
-    alg = r'C:\Users\yahli\PycharmProjects\DavidsonProject\haarcascade_frontalface_default.xml'
+    alg = os.path.abspath('./haarcascade_frontalface_default.xml')
 
     # Passing the algorithm to OpenCV
     haar_cascade = cv2.CascadeClassifier(alg)
 
     # Loading the image path into file_name variable
-    file_name = r"C:\Users\yahli\PycharmProjects\DavidsonProject\friends-square.jpg"
+    file_name = os.path.abspath("./friends-square.jpg")
 
     # Reading the image
     img = cv2.imread(file_name, 0)
