@@ -1,110 +1,129 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-import face_recognition
-import cv2
-import requests
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import os
-
-# Define the function here
-def extract_face_encodings(face_image_path):
-    # Load the image
-    image = face_recognition.load_image_file(file_name)
-
-    # Get the face encodings
-    encodings = face_recognition.face_encodings(image)
-    if encodings:
-        return encodings[0]  # Return the first encoding
-    else:
-        raise ValueError("No faces found in the image.")
+import threading
 
 
-def reverse_image_search(image_url, api_key):
-    # this is the url link of serp api
-    serp_api_url = "https://serpapi.com/search.json"
-
-    # parameters for this request
-    params = {
-        "engine": "google_reverse_image",
-        "image_url": image_url,  # url adress of the photo
-        "api_key": api_key
-    }
-    # שליחת בקשת GET ל-SerpApi
-    response = requests.get(serp_api_url, params=params)
-
-    if response.status_code == 200:
-        print("Full Response:", response.json())  # Debugging: Print the full response
-        return response.json().get("images_results", [])
-    else:
-        raise ValueError(f"Error {response.status_code}: {response.text}")
+from database import db, User, Detection
+from auth import authenticate_user, register_user, auth_bp  # Import authentication routes
 
 
-# דוגמה לשימוש
-api_key = "037aa4ce80f1e408c081476a8669b0b2aaac654acdedadc36657392675199700"
 
-# כתובת URL ציבורית של תמונה (יש להעלות תמונה לשירות אחסון ולהשתמש בכתובת שלה)
-image_url = "https://upload.wikimedia.org/wikipedia/commons/d/da/Britney_Spears_2013_%28Straighten_Crop%29.jpg"
+from reverse_search import reverse_image_search
+from notifications import send_alert
+from GUI import App
+
+# Initialize Flask App
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Shailta1055Yahli5510.@localhost/face_recognition'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False@localhost/face_recognition'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = 'super-secret-key'  # Change this in production
+
+db.init_app(app)
+login_manager = LoginManager(app)
+jwt = JWTManager(app)
+
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+app.register_blueprint(auth_bp, url_prefix='/auth')  # Register authentication module
+with app.app_context():
+    db.create_all()
+
+
+# **📌 User Registration**
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        image = request.files['image']
+
+        response = register_user(username, email, password, image)
+        if response.get('error'):
+            return jsonify(response), 400
+
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+
+# **📌 User Login**
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        response = authenticate_user(email, password)
+
+        if response.get('error'):
+            return jsonify(response), 401
+
+        login_user(response['user'])
+        return redirect(url_for('home'))
+
+    return render_template('login.html')
+
+
+# **📌 Homepage - Display User's Online Presence**
+@app.route('/home')
+@login_required
+def home():
+    detections = Detection.query.filter_by(user_id=current_user.id).all()
+    labels = [d.website_url for d in detections]
+    values = [1] * len(detections)  # Each website is counted once
+
+    return render_template('home.html', detections=detections, labels=labels, values=values)
+
+
+# **📌 Reverse Image Search (Triggered on Login)**
+@app.route('/search')
+@login_required
+def search():
+    image_url = current_user.image_url
+    results = reverse_image_search(image_url)
+
+    for result in results:
+        new_detection = Detection(user_id=current_user.id, image_url=result['image'], website_url=result['link'])
+        db.session.add(new_detection)
+        send_alert(current_user, result['link'])
+
+    db.session.commit()
+    return redirect(url_for('home'))
+
+
+# **📌 Secure Logout**
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+# Global variable to track if the GUI is already running
+gui_running = False
+
+def start_gui():
+    global gui_running
+    if not gui_running:  # Check if the GUI is already running
+        gui_running = True
+        app = App()
+        app.mainloop()
+
+
+
 if __name__ == '__main__':
-    # Loading the haar cascade algorithm file
-    alg = os.path.abspath('./haarcascade_frontalface_default.xml')
+    # Start the GUI in a separate thread
+    threading.Thread(target=start_gui, daemon=True).start()
+    # Run the Flask app
+    app.run(debug=True, use_reloader=False)  # Prevents Flask from running twice
 
-    # Passing the algorithm to OpenCV
-    haar_cascade = cv2.CascadeClassifier(alg)
-
-    # Loading the image path into file_name variable
-    file_name = os.path.abspath("./friends-square.jpg")
-
-    # Reading the image
-    img = cv2.imread(file_name, 0)
-
-    # Check if the image is loaded correctly
-    if img is None:
-        print("Image not loaded. Please check the file path and format.")
-    else:
-        # Converting the image to black and white (grayscale)
-        gray_img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
-        # Detecting the faces
-        faces = haar_cascade.detectMultiScale(
-            gray_img, scaleFactor=1.1, minNeighbors=5, minSize=(100, 100)
-        )
-
-        i = 0
-        # For each face detected
-        for x, y, w, h in faces:
-            # Crop the image to select only the face
-            cropped_image = img[y: y + h, x: x + w]
-
-            # Creating the target file name for storing the cropped face image
-            target_file_name = r'stored-faces' + str(i) + '.jpg'
-
-            # Saving the cropped face image
-            cv2.imwrite(
-                target_file_name,
-                cropped_image,
-            )
-
-            i = i + 1
-
-        print(f"Number of faces detected: {len(faces)}")
-        cropped_faces = ["stored-faces1.jpg", "stored-faces3.jpg"]  # Example cropped face images
-        for face in cropped_faces:
-            try:
-                encoding = extract_face_encodings(face)
-                print(f"Face encoding for {face}: {encoding}")
-            except ValueError as e:
-                print(f"Error processing {face}: {e}")
-    # Example usage
-    api_key = "037aa4ce80f1e408c081476a8669b0b2aaac654acdedadc36657392675199700"
-    #for face in cropped_faces:
-    #results = reverse_image_search(file_name, api_key)
-    #print(f"Results for {face}:", results)
-
-
-    try:
-        results = reverse_image_search(image_url, api_key)
-        print("Results:", results)
-    except ValueError as e:
-        print("Error:", e)
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
