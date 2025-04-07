@@ -1,0 +1,26 @@
+<canvas id="faceChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('faceChart').getContext('2d');
+    var faceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels | safe }},
+            datasets: [{
+                label: 'Detections Over Time',
+                data: {{ values | safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+    });
+</script>
+
+{% for detection in detections %}
+    <div>
+        <a href="{{ detection.website_url }}" target="_blank">
+            <img src="{{ detection.image_url }}" width="100">
+        </a>
+    </div>
+{% endfor %}

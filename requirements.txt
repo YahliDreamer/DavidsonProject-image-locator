@@ -1,0 +1,13 @@
+flask
+flask-login
+flask-jwt-extended
+flask-sqlalchemy
+mysql-connector-python
+customtkinter
+twilio
+opencv-python-headless
+numpy
+face-recognition
+requests
+gunicorn
+chart.js
