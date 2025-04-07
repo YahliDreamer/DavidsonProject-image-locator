@@ -4,6 +4,14 @@ from models import db, User  # Ensure User model is imported
 from flask_bcrypt import Bcrypt
 auth_bp = Blueprint('auth', __name__)
 bcrypt = Bcrypt()
+from werkzeug.utils import secure_filename
+import os
+
+auth_bp = Blueprint('auth', __name__)
+bcrypt = Bcrypt()
+
+UPLOAD_FOLDER = 'static/uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 def register_user(username, email, password):

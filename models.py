@@ -10,6 +10,9 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(255), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    phone_number = db.Column(db.String(20), unique=True, nullable=False)  # New Field
+    password_hash = db.Column(db.String(255), nullable=False)
+    image_url = db.Column(db.String(500), nullable=True)  # Stores the uploaded image URL
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
