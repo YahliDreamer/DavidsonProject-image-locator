@@ -1,9 +1,11 @@
+from models import User
 from flask import Blueprint, request, jsonify
+from database import db, User  # ✅ use same db instance!
 from flask_jwt_extended import create_access_token
-from models import db, User  # Ensure User model is imported
+# from models import db, User  # Ensure User model is imported
 from flask_bcrypt import Bcrypt
-auth_bp = Blueprint('auth', __name__)
-bcrypt = Bcrypt()
+from flask_bcrypt import generate_password_hash
+
 from werkzeug.utils import secure_filename
 import os
 
@@ -35,10 +37,10 @@ def register():
     """
     API endpoint to register a new user.
     """
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+    username = request.form['username']
+    email = request.form['email']
+    password = request.form['password']
+    image = request.files['image']
 
     user = register_user(username, email, password)
 
@@ -63,9 +65,9 @@ def login():
     """
     Handles user login by verifying credentials and returning a JWT token.
     """
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
+
+    email = request.form['email']
+    password = request.form['password']
 
     token = authenticate_user(email, password)
 

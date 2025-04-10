@@ -4,22 +4,26 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import os
 import threading
-
-
 from database import db, User, Detection
 from auth import authenticate_user, register_user, auth_bp  # Import authentication routes
-
-
-
 from reverse_search import reverse_image_search
 from notifications import send_alert
 from GUI import App
+import customtkinter as ctk
+import tkinter as tk
+from PIL import Image
+import requests
+from auth import auth_bp  # Import your auth blueprint
+from models import User  # Import your User model
+
+from flask_sqlalchemy import SQLAlchemy
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 # Initialize Flask App
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:Shailta1055Yahli5510.@localhost/face_recognition'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False@localhost/face_recognition'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'super-secret-key'  # Change this in production
 
@@ -30,6 +34,14 @@ jwt = JWTManager(app)
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/user/detections')
+@jwt_required()
+def get_detections():
+    user_id = get_jwt_identity()
+    detections = Detection.query.filter_by(user_id=user_id).all()
+    data = [{'website_url': d.website_url, 'image_url': d.image_url} for d in detections]
+    return jsonify(data)
 
 
 @login_manager.user_loader
@@ -42,38 +54,6 @@ with app.app_context():
 
 
 # **📌 User Registration**
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        image = request.files['image']
-
-        response = register_user(username, email, password, image)
-        if response.get('error'):
-            return jsonify(response), 400
-
-        return redirect(url_for('login'))
-    return render_template('register.html')
-
-
-# **📌 User Login**
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        response = authenticate_user(email, password)
-
-        if response.get('error'):
-            return jsonify(response), 401
-
-        login_user(response['user'])
-        return redirect(url_for('home'))
-
-    return render_template('login.html')
-
 
 # **📌 Homepage - Display User's Online Presence**
 @app.route('/home')
