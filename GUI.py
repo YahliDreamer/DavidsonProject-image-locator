@@ -38,11 +38,11 @@ class LoginFrame(ctk.CTkFrame):
 
     def login(self):
         email = self.email_entry.get()
-        password = self.password_entry.get()
+        passwd = self.password_entry.get()
 
         response = requests.post("http://localhost:5000/auth/login", data={
             "email": email,
-            "password": password
+            "password": passwd
         })
 
         if response.status_code == 200:
