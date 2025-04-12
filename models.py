@@ -2,13 +2,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import UserMixin
 from flask_bcrypt import generate_password_hash, check_password_hash
-
-
-
-db = SQLAlchemy()
+from werkzeug.security import generate_password_hash, check_password_hash
+from database import db
 bcrypt = Bcrypt()
 
-class User(db.Model):
+class User(UserMixin,db.Model):
+    __tablename__ = 'user'
+    __table_args__ = {'extend_existing': True}  # ✅ THIS LINE FIXES THE ERROR
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -28,6 +28,9 @@ class User(db.Model):
 
 
 class Detection(db.Model):
+    __tablename__ = 'detection'
+    __table_args__ = {'extend_existing': True}  # ✅ Add this line too
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     image_url = db.Column(db.Text, nullable=False)

@@ -8,6 +8,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     image_url = db.Column(db.Text)
+    monitor_enabled = db.Column(db.Boolean, default=True)
 
 class Detection(db.Model):
     id = db.Column(db.Integer, primary_key=True)

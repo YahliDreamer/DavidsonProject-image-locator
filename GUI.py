@@ -2,7 +2,14 @@ import customtkinter as ctk
 import threading
 from face_monitor import start_monitoring
 import requests
-
+# this 5 lines were added while trouble shouting.
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_login import UserMixin
+from flask_bcrypt import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import User
+from database import db
 # GUI.py
 import customtkinter as ctk
 import requests
@@ -12,6 +19,8 @@ import customtkinter as ctk
 from tkinter import filedialog
 import requests
 
+# db = SQLAlchemy()
+bcrypt = Bcrypt()
 # 1. Login Frame
 class LoginFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -78,23 +87,26 @@ class SignUpFrame(ctk.CTkFrame):
         data = {
             "username": self.name_entry.get(),
             "email": self.email_entry.get(),
-            "password": self.password_entry.get()
-        }
-        user = User(email=data['email'])
-        user.set_password(data['password'])  # Hash the password
-        db.session.add(user)
-        db.session.commit()
-        files = {
-            "image": open(self.image_path, "rb")
+            "password": self.password_entry.get(),
+            "phone": self.phone_entry.get()
         }
 
-        response = requests.post("http://localhost:5000/auth/register", data=data, files=files)
+        if not self.image_path:
+            print("❌ Please upload an image.")
+            return
 
-        if response.status_code == 200:
-            print("✅ Registered successfully!")
-            self.master.show_login()
-        else:
-            print("❌ Registration failed:", response.text)
+        try:
+            with open(self.image_path, "rb") as img_file:
+                files = {"image": img_file}
+                response = requests.post("http://localhost:5000/auth/register", data=data, files=files)
+
+            if response.status_code == 201:
+                print("✅ Registered successfully!")
+                self.master.show_login()
+            else:
+                print("❌ Registration failed:", response.text)
+        except Exception as e:
+            print(f"❌ Error during registration: {e}")
 
 
 # 3. Home Frame (SQL stats, image results, etc.)

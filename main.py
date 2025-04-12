@@ -3,8 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import os
+
 import threading
-from database import db, User, Detection
+from database import db
+from models import User, Detection
 from auth import authenticate_user, register_user, auth_bp  # Import authentication routes
 from reverse_search import reverse_image_search
 from notifications import send_alert
@@ -13,8 +15,8 @@ import customtkinter as ctk
 import tkinter as tk
 from PIL import Image
 import requests
-from auth import auth_bp  # Import your auth blueprint
-from models import User  # Import your User model
+from auth import authenticate_user, register_user,auth_bp  # Import your auth blueprint
+# from models import User  # Import your User model
 
 from flask_sqlalchemy import SQLAlchemy
 ctk.set_appearance_mode("dark")
@@ -102,8 +104,18 @@ def start_gui():
 
 
 if __name__ == '__main__':
-    # Start the GUI in a separate thread
-    threading.Thread(target=start_gui, daemon=True).start()
-    # Run the Flask app
-    app.run(debug=True, use_reloader=False)  # Prevents Flask from running twice
+        # ✅ Start the face monitoring background thread
+        # from face_monitor import start_monitoring_thread
+        #
+        # start_monitoring_thread(app)
 
+        # ✅ Start the GUI in a separate thread
+        threading.Thread(target=start_gui, daemon=True).start()
+
+        # ✅ Start Flask server
+        app.run(debug=True, use_reloader=False)  # Prevents Flask from running twice
+    # # Start the GUI in a separate thread
+    # threading.Thread(target=start_gui, daemon=True).start()
+    # # Run the Flask app
+    # app.run(debug=True, use_reloader=False)  # Prevents Flask from running twice
+    #
