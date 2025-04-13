@@ -77,21 +77,23 @@ def authenticate_user(email, password):
 
     return None  # Authentication failed
 
+from face_monitor import start_monitoring_thread
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """
-    Handles user login by verifying credentials and returning a JWT token.
-    """
-
     email = request.form['email']
     password = request.form['password']
 
-    token = authenticate_user(email, password)
+    user = User.query.filter_by(email=email).first()
 
-    if token:
-        # ✅ Start face monitoring only for this session
-        threading.Thread(target=start_monitoring_thread, args=(current_app._get_current_object(),), daemon=True).start()
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=str(user.id))  # ✅ force to string
 
-        return jsonify({'access_token': token}), 200
+        # # ✅ Start monitoring for this user
+        # threading.Thread(target=start_monitoring_thread, args=(user,), daemon=True).start()
+        # ✅ Start background face monitoring for this specific user
+        start_monitoring_thread(current_app._get_current_object(), user)
+
+        return jsonify({'access_token': access_token, 'user_id': user.id}), 200
+
     return jsonify({'error': 'Invalid email or password'}), 401

@@ -4,6 +4,8 @@ from flask_login import UserMixin
 from flask_bcrypt import generate_password_hash, check_password_hash
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
+from datetime import datetime
+
 bcrypt = Bcrypt()
 
 class User(UserMixin,db.Model):
@@ -35,7 +37,7 @@ class Detection(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     image_url = db.Column(db.Text, nullable=False)
     website_url = db.Column(db.Text, nullable=False)
-
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 class FaceRecognitionStats(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
