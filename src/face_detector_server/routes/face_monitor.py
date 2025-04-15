@@ -1,17 +1,9 @@
-import time
-import threading
-from flask import Flask
-from reverse_search import reverse_image_search
-from database import get_all_users, save_detection
-import random
-import mysql.connector
-from datetime import datetime
 # next lines logic
 
 
 def monitor_once(app,user):
     with app.app_context():
-        from database import get_all_users, save_detection
+        from src.face_detector_server.database import save_detection
         from reverse_search import reverse_image_search
         if not user.monitor_enabled:
             return
