@@ -1,16 +1,17 @@
-from flask import Blueprint, redirect
+from flask import Blueprint, redirect, url_for, render_template
 from flask_login import login_required, current_user
 
 from src.face_detector_server.routes.notifications import send_alert
-from reverse_search import reverse_image_search
+from src.face_detector_server.face_recognition.reverse_search import reverse_image_search
 from src.face_detector_server import db
 from src.face_detector_server.models import Detection
 
 
-app = Blueprint('/user/detections', __name__)
+app = Blueprint('main', __name__)
+
 
 # **📌 Homepage - Display User's Online Presence**
-@app.route('/home')
+@app.route('/')
 @login_required
 def home():
     detections = Detection.query.filter_by(user_id=current_user.id).all()

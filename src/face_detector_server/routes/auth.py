@@ -2,17 +2,15 @@ import os
 from flask import current_app, Blueprint, request, jsonify, redirect, url_for
 from flask_jwt_extended import create_access_token
 from flask_login import logout_user, login_required
+from flask_bcrypt import generate_password_hash
 from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash
 
 from src.face_detector_server.config import UPLOAD_FOLDER
 from src.face_detector_server.models import User
 from src.face_detector_server import db
-from face_monitor import start_monitoring_thread
+# from face_monitor import start_monitoring_thread
 
 auth_bp = Blueprint('auth', __name__)
-# bcrypt = Bcrypt()
-
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
@@ -55,7 +53,7 @@ def login():
         # # ✅ Start monitoring for this user
         # threading.Thread(target=start_monitoring_thread, args=(user,), daemon=True).start()
         # ✅ Start background face monitoring for this specific user
-        start_monitoring_thread(current_app._get_current_object(), user)
+        # start_monitoring_thread(current_app._get_current_object(), user)
 
         return jsonify({'access_token': access_token, 'user_id': user.id}), 200
 
@@ -71,15 +69,12 @@ def logout():
 
 
 def register_user(name, email, password, image_url):
-    print('orid register_user', name, email, password, image_url)
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
         return None  # User already exists
 
     # ✅ Properly hash the password
     hashed_password = generate_password_hash(password)
-    print('orid hashed_password', hashed_password)
-    hashed_password = password
 
     new_user = User(
         username=name,

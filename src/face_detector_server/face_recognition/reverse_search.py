@@ -1,5 +1,6 @@
 import requests
 
+
 def upload_to_imgbb(image_path):
     key = r"360a3efb7dfbde0e52e54c14f457f672"
     url = "https://api.imgbb.com/1/upload"
@@ -12,6 +13,7 @@ def upload_to_imgbb(image_path):
     else:
         print("Error uploading image:", response.json())
         return None
+
 
 def reverse_image_search(image_path):
     key = r"037aa4ce80f1e408c081476a8669b0b2aaac654acdedadc36657392675199700"

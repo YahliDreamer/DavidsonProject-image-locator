@@ -4,10 +4,10 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from src.face_detector_server import db
 from src.face_detector_server.models import Detection
 
-app = Blueprint('/user/detections', __name__)
+user_bp = Blueprint('user', __name__)
 
 
-@app.route('/user/detections', methods=['GET'])
+@user_bp.route('/detections', methods=['GET'])
 @jwt_required()
 def get_detections():
     user_id = get_jwt_identity()
@@ -35,7 +35,7 @@ def get_detections():
     return jsonify(data)
 
 
-@app.route('/user/report')
+@user_bp.route('/report')
 @jwt_required()
 def report():
     from sqlalchemy import func
@@ -88,7 +88,7 @@ def report():
     })
 
 
-@app.route('/user/stats', methods=['GET'])
+@user_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_stats():
     user_id = get_jwt_identity()

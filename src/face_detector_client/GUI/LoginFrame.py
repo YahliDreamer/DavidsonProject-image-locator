@@ -16,7 +16,6 @@ class LoginFrame(ctk.CTkFrame):
         ctk.CTkButton(self, text="Login", command=self.login).pack(pady=10)
         ctk.CTkButton(self, text="Sign Up", command=master.show_signup).pack()
 
-
     def login(self):
         email = self.email_entry.get()
         passwd = self.password_entry.get()

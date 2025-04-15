@@ -14,7 +14,6 @@ class GuiMain(ctk.CTk):
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
-
         self.login_frame = LoginFrame(self)
         self.signup_frame = SignUpFrame(self)
         self.home_frame = HomeFrame(self)
