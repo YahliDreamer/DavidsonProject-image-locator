@@ -2,7 +2,7 @@ from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_login import UserMixin
 
 from src.face_detector_server import db
-
+from sqlalchemy import Boolean
 
 # from src.face_detector_server.extensions import db
 
@@ -15,6 +15,7 @@ class User(UserMixin,db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
+    monitor_enabled = db.Column(Boolean, default=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password).decode('utf-8')

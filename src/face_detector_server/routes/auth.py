@@ -9,6 +9,7 @@ from src.face_detector_server.config import UPLOAD_FOLDER
 from src.face_detector_server.models import User
 from src.face_detector_server import db
 # from face_monitor import start_monitoring_thread
+from src.face_detector_server.face_recognition.face_monitor import start_monitoring_thread
 
 auth_bp = Blueprint('auth', __name__)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -49,13 +50,16 @@ def login():
 
     if user and user.check_password(password):
         access_token = create_access_token(identity=str(user.id))  # ✅ force to string
-
-        # # ✅ Start monitoring for this user
-        # threading.Thread(target=start_monitoring_thread, args=(user,), daemon=True).start()
-        # ✅ Start background face monitoring for this specific user
-        # start_monitoring_thread(current_app._get_current_object(), user)
+        # ✅ Start background face monitoring
+        try:
+            start_monitoring_thread(current_app._get_current_object(), user)
+            print(f"[✅] Monitoring started for {user.email}")
+        except Exception as e:
+            print(f"[❌] Error starting monitoring: {e}")
 
         return jsonify({'access_token': access_token, 'user_id': user.id}), 200
+
+
 
     return jsonify({'error': 'Invalid email or password'}), 401
 
