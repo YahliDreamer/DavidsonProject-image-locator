@@ -215,8 +215,53 @@ class ReportFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.master = master
+        self.selected_chart = "bar"  # default chart
         self.label = ctk.CTkLabel(self, text="📊 Analytics Dashboard", font=ctk.CTkFont(size=20, weight="bold"))
         self.label.pack(pady=10)
+
+        # Chart selector buttons
+        self.chart_selector = ctk.CTkSegmentedButton(self, values=["Bar", "Line", "Pie"],
+                                                     command=self.update_chart_display)
+        self.chart_selector.pack(pady=10)
+
+        self.load_button = ctk.CTkButton(self, text="Load Report", command=self.load_graphs)
+        self.load_button.pack(pady=10)
+
+        self.loading_label = ctk.CTkLabel(self, text="")
+        self.loading_label.pack()
+
+        # This will hold all charts
+        self.figures = {}
+
+        # Filters
+        filter_frame = ctk.CTkFrame(self)
+        filter_frame.pack(pady=5)
+        self.year_filter = ctk.CTkEntry(filter_frame, placeholder_text="Year (optional)", width=120)
+        self.year_filter.pack(side="left", padx=5)
+
+        self.platform_filter = ctk.CTkEntry(filter_frame, placeholder_text="Platform (optional)", width=120)
+        self.platform_filter.pack(side="left", padx=5)
+
+        # Load & Export
+        self.load_button = ctk.CTkButton(self, text="📥 Load Report", command=self.load_graphs)
+        self.load_button.pack(pady=5)
+
+        self.loading_label = ctk.CTkLabel(self, text="")
+        self.loading_label.pack()
+
+        self.export_frame = ctk.CTkFrame(self)
+        self.export_frame.pack(pady=5)
+        ctk.CTkButton(self.export_frame, text="Export CSV", command=self.export_csv).pack(side="left", padx=5)
+        ctk.CTkButton(self.export_frame, text="Export PDF", command=self.export_pdf).pack(side="left", padx=5)
+
+        # Canvas for graphs
+        self.canvas_frame = ctk.CTkFrame(self)
+        self.canvas_frame.pack(fill="both", expand=True)
+
+        # Theme switch
+        self.theme_switch = ctk.CTkSwitch(self, text="🌙 Dark Mode", command=self.toggle_theme)
+        self.theme_switch.pack(pady=10)
+
 
         self.canvas_frame = ctk.CTkFrame(self)
         self.canvas_frame.pack(fill="both", expand=True)
@@ -228,57 +273,130 @@ class ReportFrame(ctk.CTkFrame):
 
         self.after(500, self.load_graphs)  # ✅ safe
 
+    def export_csv(self):
+        import csv
+        from tkinter import filedialog
+
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV Files", "*.csv")])
+        if not file_path:
+            return
+
+        websites = list(self.figures.get("Bar").axes[0].patches)
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Website", "Detections"])
+            for patch in websites:
+                label = patch.get_label()
+                count = patch.get_width()
+                writer.writerow([label, int(count)])
+
+    def export_pdf(self):
+        from matplotlib.backends.backend_pdf import PdfPages
+        from tkinter import filedialog
+
+        file_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF Files", "*.pdf")])
+        if not file_path:
+            return
+
+        with PdfPages(file_path) as pdf:
+            for fig in self.figures.values():
+                pdf.savefig(fig)
+
+    def update_chart_display(self, chart_type):
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+        # Clear previous charts
+        for widget in self.canvas_frame.winfo_children():
+            widget.destroy()
+
+        fig = self.figures.get(chart_type)
+        if fig:
+            chart = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+            chart.get_tk_widget().pack(pady=10)
+            chart.draw()
+
     def load_graphs(self):
+        self.loading_label.configure(text="Loading...")
         try:
+            params = {}
+            year = self.year_filter.get().strip()
+            platform = self.platform_filter.get().strip()
+
+            if year:
+                params["year"] = year
+            if platform:
+                params["platform"] = platform
+
             response = requests.get("http://localhost:5000/user/report", headers={
                 "Authorization": f"Bearer {self.master.access_token}"
-            })
+            }, params=params)
 
             if response.status_code == 200:
                 data = response.json()
                 self.display_graphs(data)
             else:
-                ctk.CTkLabel(self.canvas_frame, text="❌ Failed to load report").pack()
-
+                self.loading_label.configure(text="❌ Failed to load report")
         except Exception as e:
-            ctk.CTkLabel(self.canvas_frame, text=f"❌ Error: {e}").pack()
+            self.loading_label.configure(text=f"❌ Error: {e}")
+
+    def toggle_theme(self):
+        current_mode = ctk.get_appearance_mode()
+        new_mode = "light" if current_mode == "dark" else "dark"
+        ctk.set_appearance_mode(new_mode)
+
+        self.theme_switch.configure(text="☀️ Light Mode" if new_mode == "dark" else "🌙 Dark Mode")
 
     def display_graphs(self, data):
+        self.loading_label.configure(text="")  # Clear loading message
+
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-        import matplotlib.pyplot as plt
+        from matplotlib.figure import Figure
 
-        # 🔁 Clear old content
-        for widget in self.canvas_frame.winfo_children():
-            widget.destroy()
+        # Save figure references
+        self.figures = {}
 
-        fig_bar = Figure(figsize=(6, 4))
-        ax_bar = fig_bar.add_subplot(111)
         websites = list(data['top_websites'].keys())
         counts = list(data['top_websites'].values())
+
+        # Bar chart
+        fig_bar = Figure(figsize=(6, 4))
+        ax_bar = fig_bar.add_subplot(111)
         ax_bar.barh(websites, counts)
         ax_bar.set_title("Top Websites by Detections")
         ax_bar.set_xlabel("Detections")
         ax_bar.invert_yaxis()
+        self.figures["Bar"] = fig_bar
 
+        # Line chart
         fig_line = Figure(figsize=(6, 4))
         ax_line = fig_line.add_subplot(111)
-        ax_line.plot(data['trend_years'], data['trend_counts'], marker='o')
+        if data["trend_years"] and data["trend_counts"]:
+            ax_line.plot(data["trend_years"], data["trend_counts"], marker="o")
         ax_line.set_title("Detection Trends by Year")
         ax_line.set_xlabel("Year")
-        ax_line.set_ylabel("Count")
+        ax_line.set_ylabel("Detections")
+        self.figures["Line"] = fig_line
 
+        # Pie chart
         fig_pie = Figure(figsize=(5, 5))
         ax_pie = fig_pie.add_subplot(111)
-        ax_pie.pie(counts, labels=websites, autopct="%1.1f%%")
+        if counts:
+            ax_pie.pie(counts, labels=websites, autopct="%1.1f%%")
         ax_pie.set_title("Detections by Platform")
+        self.figures["Pie"] = fig_pie
 
-        for fig in [fig_bar, fig_line, fig_pie]:
-            chart = FigureCanvasTkAgg(fig, master=self.canvas_frame)
-            chart.get_tk_widget().pack(pady=10)
-            chart.draw()
-            trend_msg = data.get("trend_text", "")
-            if trend_msg:
-                ctk.CTkLabel(self.canvas_frame, text=f"📈 {trend_msg}", font=("Arial", 12)).pack(pady=5)
+        # Show initial chart
+        self.update_chart_display("Bar")
+
+        # 📈 Text insight
+        trend_msg = data.get("trend_text", "")
+        if trend_msg:
+            ctk.CTkLabel(self.canvas_frame, text=f"📈 {trend_msg}", font=("Arial", 12)).pack(pady=10)
+
+    def switch_chart(self, chart_type):
+        self.selected_chart = chart_type
+        self.load_graphs()
+
 
 #  4. App Main GUI
 class App(ctk.CTk):

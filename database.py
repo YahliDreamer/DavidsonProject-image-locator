@@ -9,7 +9,7 @@ def get_appearance_stats_by_year(user_id):
         func.count()
     ).filter_by(user_id=user_id).group_by(func.year(Detection.timestamp)).all()
 
-def get_top_websites(user_id, limit=5):
+def get_top_websites(user_id, limit=10):
     return db.session.query(
         Detection.website_url,
         func.count()

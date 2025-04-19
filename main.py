@@ -45,7 +45,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 @jwt_required()
 def get_detections():
     user_id = get_jwt_identity()
-    limit = request.args.get('limit', default=50, type=int)
+    limit = request.args.get('limit', default=5, type=int)
 
     try:
         user_id = int(user_id)
@@ -130,7 +130,7 @@ def report():
     top_websites = {site: count for site, count in top_sites}
 
     # 📊 Count detections by year (for trend chart)
-    detections = Detection.query.filter_by(user_id=user_id).order_by(Detection.timestamp.desc()).limit(500).all()
+    detections = Detection.query.filter_by(user_id=user_id).order_by(Detection.timestamp.desc()).limit(200).all()
 
     year_counts = defaultdict(int)
     for det in detections:
@@ -138,7 +138,7 @@ def report():
             year = det.timestamp.year
             year_counts[year] += 1
 
-    MAX_YEARS = 5
+    MAX_YEARS = 10
     trend_years = sorted(year_counts)[-MAX_YEARS:]  # Get the last MAX_YEARS
     trend_counts = [year_counts[y] for y in trend_years]
 
