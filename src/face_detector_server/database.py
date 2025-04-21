@@ -1,16 +1,16 @@
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
+from src.face_detector_server import db
 from src.face_detector_server.models.Detection import Detection
 from src.face_detector_server.models.User import User
 
-db = SQLAlchemy()
 
 def get_appearance_stats_by_year(user_id):
     return db.session.query(
         func.year(Detection.timestamp),
         func.count()
     ).filter_by(user_id=user_id).group_by(func.year(Detection.timestamp)).all()
+
 
 def get_top_websites(user_id, limit=5):
     return db.session.query(
