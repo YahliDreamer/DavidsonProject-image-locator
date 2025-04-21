@@ -33,27 +33,33 @@ def reverse_image_search(image_path):
     if not image_url:
         print("❌ No image URL returned. Skipping search.")
         return []
-
+    results = []
     try:
-        params = {
-            "engine": "google_lens",
-            "url": image_url,
-            "api_key": serpapi_key
-        }
-        response = requests.get("https://serpapi.com/search.json", params=params)
+        for engine, result_key in [("google_lens", "visual_matches"), ("yandex_images", "image_results")]:
+            params = {
+                "engine": engine,
+                "url": image_url,
+                "api_key": serpapi_key
+            }
+            response = requests.get("https://serpapi.com/search.json", params=params)
+            print(f"📦 SerpAPI status code: {response.status_code}")
+            data = response.json()
+            if "error" in data:
+                print(f"❌ SerpAPI with engine={engine} error: {data['error']}")
+                continue
 
-        print(f"📦 SerpAPI status code: {response.status_code}")
-        data = response.json()
-        print("📑 SerpAPI JSON response:")
-        from pprint import pprint
-        pprint(data)
+            if data.get(result_key):
+                results.extend(data.get(result_key))
 
-        if "error" in data:
-            print(f"❌ SerpAPI error: {data['error']}")
-            return []
+            print(f"📑 SerpAPI JSON response from {engine}:")
+            from pprint import pprint
+            pprint(data)
 
-        return data.get("visual_matches", [])
+        # filter out bad sites
+        filtered_results = [result for result in results if ".com" in result["link"]]
+
+        return filtered_results
 
     except Exception as e:
-        print(f"❌ Exception during reverse search: {e}")
+        print(f"❌ Exception during reverse search: {e.with_traceback()}")
         return []

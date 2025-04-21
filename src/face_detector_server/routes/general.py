@@ -29,7 +29,7 @@ def search():
     results = reverse_image_search(image_url)
 
     for result in results:
-        new_detection = Detection(user_id=current_user.id, image_url=result['image'], website_url=result['link'])
+        new_detection = Detection(user_id=current_user.id, image_url='image', website_url=result['link'])
         db.session.add(new_detection)
         send_alert(current_user, result['link'])
 

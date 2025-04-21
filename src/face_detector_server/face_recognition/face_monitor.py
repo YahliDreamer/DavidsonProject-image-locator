@@ -18,7 +18,7 @@ def monitor_once(app, user):
 
         for result in results:
             print(f"✅ Saving detection: {result}")
-            save_detection(user.id, result.get("image"), result.get("link"))
+            save_detection(user.id, "image", result.get("link"))
 
 
 def start_monitoring(app, user):
