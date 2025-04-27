@@ -2,7 +2,7 @@ import requests
 import os
 
 def upload_to_imgbb(image_path):
-    key = "360a3efb7dfbde0e52e54c14f457f672"
+    key = "3aafe473d7d4bfd3de27262bc3c8013b"
     url = "https://api.imgbb.com/1/upload"
 
     if not os.path.exists(image_path):
@@ -26,8 +26,8 @@ def upload_to_imgbb(image_path):
 
 
 def reverse_image_search(image_path):
-    serpapi_key = "037aa4ce80f1e408c081476a8669b0b2aaac654acdedadc36657392675199700"
-
+    # serpapi_key = "037aa4ce80f1e408c081476a8669b0b2aaac654acdedadc36657392675199700"
+    serpapi_key = "20a48469312d362e9a6a7dabaa41393b2b228f797f1467c17b41d720ede65add"
     print(f"🔍 Uploading image for reverse search: {image_path}")
     image_url = upload_to_imgbb(image_path)
     if not image_url:
@@ -44,9 +44,12 @@ def reverse_image_search(image_path):
             response = requests.get("https://serpapi.com/search.json", params=params)
             print(f"📦 SerpAPI status code: {response.status_code}")
             data = response.json()
-            if "error" in data:
+            # Only skip if the top-level error key is present AND there are no results
+            if data.get("error"):
                 print(f"❌ SerpAPI with engine={engine} error: {data['error']}")
-                continue
+                # Only skip if the result_key is also missing
+                if not data.get(result_key):
+                    continue
 
             if data.get(result_key):
                 results.extend(data.get(result_key))
@@ -58,7 +61,8 @@ def reverse_image_search(image_path):
         # filter out bad sites
         filtered_results = [result for result in results if ".com" in result["link"]]
 
-        return filtered_results
+        return results
+
 
     except Exception as e:
         print(f"❌ Exception during reverse search: {e.with_traceback()}")

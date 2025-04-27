@@ -22,9 +22,8 @@ def monitor_once(app, user):
 
 
 def start_monitoring(app, user):
-    while True:
+    # while True:
         monitor_once(app, user)
-        time.sleep(3600)
 
 
 def start_monitoring_thread(app, user):

@@ -27,8 +27,10 @@ class HomeFrame(ctk.CTkFrame):
         self.access_token = user_data['access_token']
         self.after(100, self.load_detections)
 
-    def load_detections(self):
-        keyword = self.search_var.get().lower().strip()
+    def load_detections(self, filter_keyword=None):
+        keyword = filter_keyword or self.search_var.get().lower().strip()
+
+        # keyword = self.search_var.get().lower().strip()
         try:
             response = requests.get(
                 "http://localhost:5000/user/detections?limit=50",
