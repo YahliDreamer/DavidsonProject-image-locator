@@ -112,7 +112,11 @@ from tkinter import filedialog
 #         labels = [f"Img {i+1}" for i in range(len(data))]
 #         values = [entry["count"] for entry in data]
 #         self.plot_graph("Top Images Online", labels, values)
-
+import customtkinter as ctk
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import requests
+from tkinter import filedialog
 
 class ReportFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -133,7 +137,7 @@ class ReportFrame(ctk.CTkFrame):
         self.year_filter.set("All")
         self.year_filter.pack(pady=5)
 
-        self.load_button = ctk.CTkButton(self, text="📊 Load Report", command=self.load_graphs)
+        self.load_button = ctk.CTkButton(self, text="📊 Load another Report", command=self.load_graphs)
         self.load_button.pack(pady=5)
 
         self.export_csv = ctk.CTkButton(self, text="⬇ Export CSV", command=self.export_to_csv)
@@ -189,4 +193,3 @@ class ReportFrame(ctk.CTkFrame):
         # Placeholder
         filedialog.asksaveasfilename(defaultextension=".pdf")
         print("✅ PDF Exported")
-

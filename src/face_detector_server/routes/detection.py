@@ -34,7 +34,6 @@ def get_detections():
 
     return jsonify(data)
 
-
 @user_bp.route('/report')
 @jwt_required()
 def report():
@@ -86,20 +85,3 @@ def report():
         "trend_years": trend_years,
         "trend_counts": trend_counts
     })
-
-
-@user_bp.route('/stats', methods=['GET'])
-@jwt_required()
-def get_stats():
-    user_id = get_jwt_identity()
-
-    from src.face_detector_server.database import get_appearance_stats_by_year, get_top_websites
-
-    yearly = get_appearance_stats_by_year(user_id)
-    top_sites = get_top_websites(user_id)
-
-    return jsonify({
-        "yearly": [{"year": y[0], "count": y[1]} for y in yearly],
-        "top_sites": [{"site": s[0], "count": s[1]} for s in top_sites]
-    })
-

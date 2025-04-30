@@ -57,8 +57,12 @@ def login():
         except Exception as e:
             print(f"[❌] Error starting monitoring: {e}")
 
-        return jsonify({'access_token': access_token, 'user_id': user.id}), 200
-
+        return jsonify({
+            'access_token': access_token,
+            'user_id': user.id,
+            'username': user.username,
+            'image_url': user.image_url
+        }), 200
 
 
     return jsonify({'error': 'Invalid email or password'}), 401

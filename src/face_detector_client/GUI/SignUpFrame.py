@@ -2,32 +2,101 @@ import requests
 import customtkinter as ctk
 from tkinter import filedialog
 
-
 class SignUpFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        ctk.CTkLabel(self, text="Name").pack()
-        self.name_entry = ctk.CTkEntry(self)
-        self.name_entry.pack()
+        # 🌸 Set pink background
+        self.configure(fg_color="#ffe6f0")  # Light pink
 
-        ctk.CTkLabel(self, text="Email").pack()
-        self.email_entry = ctk.CTkEntry(self)
-        self.email_entry.pack()
+        # 🌟 Title
+        self.title_label = ctk.CTkLabel(
+            self,
+            text="Create Your Account 🎀",
+            font=("Comic Sans MS", 28, "bold"),
+            text_color="#ff66b2"
+        )
+        self.title_label.pack(pady=(30, 20))
 
-        ctk.CTkLabel(self, text="Password").pack()
-        self.password_entry = ctk.CTkEntry(self, show="*")
-        self.password_entry.pack()
+        # 📝 Name
+        self.name_label = ctk.CTkLabel(
+            self, text="Name", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
+        )
+        self.name_label.pack(pady=(10, 5))
+        self.name_entry = ctk.CTkEntry(
+            self, corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
+        )
+        self.name_entry.pack(pady=(0, 15), ipadx=10, ipady=5)
 
-        ctk.CTkLabel(self, text="Phone").pack()
-        self.phone_entry = ctk.CTkEntry(self)
-        self.phone_entry.pack()
+        # ✉️ Email
+        self.email_label = ctk.CTkLabel(
+            self, text="Email", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
+        )
+        self.email_label.pack(pady=(10, 5))
+        self.email_entry = ctk.CTkEntry(
+            self, corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
+        )
+        self.email_entry.pack(pady=(0, 15), ipadx=10, ipady=5)
 
+        # 🔒 Password
+        self.password_label = ctk.CTkLabel(
+            self, text="Password", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
+        )
+        self.password_label.pack(pady=(10, 5))
+        self.password_entry = ctk.CTkEntry(
+            self, show="*", corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
+        )
+        self.password_entry.pack(pady=(0, 15), ipadx=10, ipady=5)
+
+        # 📱 Phone
+        self.phone_label = ctk.CTkLabel(
+            self, text="Phone", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
+        )
+        self.phone_label.pack(pady=(10, 5))
+        self.phone_entry = ctk.CTkEntry(
+            self, corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
+        )
+        self.phone_entry.pack(pady=(0, 20), ipadx=10, ipady=5)
+
+        # 🖼️ Upload Image Button
         self.image_path = ""
-        ctk.CTkButton(self, text="Upload Image", command=self.upload_image).pack()
+        self.upload_button = ctk.CTkButton(
+            self,
+            text="📸 Upload Image",
+            command=self.upload_image,
+            fg_color="#ff66b2",
+            hover_color="#ff99cc",
+            corner_radius=20,
+            font=("Comic Sans MS", 16, "bold")
+        )
+        self.upload_button.pack(pady=(5, 20), ipadx=10, ipady=5)
 
-        ctk.CTkButton(self, text="Submit", command=self.signup).pack(pady=10)
-        ctk.CTkButton(self, text="Back to Login", command=master.show_login).pack()
+        # ✅ Submit Button
+        self.submit_button = ctk.CTkButton(
+            self,
+            text="✨ Submit ✨",
+            command=self.signup,
+            fg_color="#ff66b2",
+            hover_color="#ff99cc",
+            corner_radius=20,
+            font=("Comic Sans MS", 16, "bold")
+        )
+        self.submit_button.pack(pady=(10, 10), ipadx=10, ipady=5)
+
+        # 🔙 Back Button
+        self.back_button = ctk.CTkButton(
+            self,
+            text="🔙 Back to Login",
+            command=master.show_login,
+            fg_color="#ffffff",
+            text_color="#ff66b2",
+            border_color="#ff66b2",
+            border_width=2,
+            hover_color="#ffe6f0",
+            corner_radius=20,
+            font=("Comic Sans MS", 16, "bold")
+        )
+        self.back_button.pack(pady=(0, 30), ipadx=10, ipady=5)
 
     def upload_image(self):
         path = filedialog.askopenfilename()
@@ -57,4 +126,3 @@ class SignUpFrame(ctk.CTkFrame):
                 print("❌ Registration failed:", response.text)
         except Exception as e:
             print(f"❌ Error during registration: {e}")
-
