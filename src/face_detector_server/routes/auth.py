@@ -37,7 +37,16 @@ def register():
     user = register_user(username, email, password, image_url)
 
     if user:
+        user_data = dict(image_url=user.image_url, monitor_enabled=user.monitor_enabled, email=user.email, id=user.id)
+        # ✅ Start background face monitoring
+        try:
+            start_monitoring_thread(current_app._get_current_object(), user_data)
+            print(f"[✅] Monitoring started for {user.email}")
+        except Exception as e:
+            print(f"[❌] Error starting monitoring: {e}")
+
         return jsonify({'message': 'User registered successfully'}), 201
+
     return jsonify({'error': 'Email already exists'}), 400
 
 
@@ -50,12 +59,6 @@ def login():
 
     if user and user.check_password(password):
         access_token = create_access_token(identity=str(user.id))  # ✅ force to string
-        # ✅ Start background face monitoring
-        try:
-            start_monitoring_thread(current_app._get_current_object(), user)
-            print(f"[✅] Monitoring started for {user.email}")
-        except Exception as e:
-            print(f"[❌] Error starting monitoring: {e}")
 
         return jsonify({
             'access_token': access_token,
