@@ -1,3 +1,5 @@
+from time import sleep
+
 import customtkinter as ctk
 from PIL import Image, ImageDraw
 import requests
@@ -21,6 +23,7 @@ class HomeFrame(ctk.CTkFrame):
         self.profile_img = None
         self.access_token = None
         self.detections = []
+        self.detections_timeout = 30
 
         # 🚀 Title
         self.title_label = ctk.CTkLabel(
@@ -145,36 +148,50 @@ class HomeFrame(ctk.CTkFrame):
             widget.configure(fg_color=self.secondary_color)
 
     def load_detections(self):
+        elapsed_time = 0
+        sleep_interval = 5
+        ctk.CTkLabel(
+            self.scrollable_container,
+            text="Waiting for detections...",
+            font=(self.font_family, 16),
+            text_color=self.primary_color
+        ).pack(pady=10)
         try:
-            response = requests.get(
-                "http://localhost:5000/user/detections?limit=50",
-                headers={"Authorization": f"Bearer {self.access_token}"}
-            )
-            if response.status_code == 200:
+            while not self.detections and elapsed_time < self.detections_timeout:
+                sleep(sleep_interval)  # wait between each iteration
+                elapsed_time += sleep_interval
+
+                response = requests.get(
+                    "http://localhost:5000/user/detections?limit=50",
+                    headers={"Authorization": f"Bearer {self.access_token}"}
+                    )
+                if response.status_code != 200:
+                    print("❌ Failed to load detections:", response.text)
+                    continue
+
                 self.detections = response.json()
 
                 self.detections = sorted(
                     self.detections, key=lambda x: x.get('timestamp', '')
                 )
+                if self.detections:
+                    for widget in self.scrollable_container.winfo_children():
+                        widget.destroy()
 
-                for widget in self.scrollable_container.winfo_children():
-                    widget.destroy()
-
-                if not self.detections:
-                    ctk.CTkLabel(
-                        self.scrollable_container,
-                        text="No detections yet.",
-                        font=(self.font_family, 16),
-                        text_color=self.primary_color
-                    ).pack(pady=10)
+                    self.show_detections_animated(0)
                     return
 
-                self.show_detections_animated(0)
-
-            else:
-                print("❌ Failed to load detections:", response.text)
+                message = f"❌ Failed to load detections after timeout of {self.detections_timeout} seconds"
         except Exception as e:
-            print("❌ Error loading detections:", e)
+            message = f"❌ Error loading detections:{e}"
+            print(message)
+
+        ctk.CTkLabel(
+            self.scrollable_container,
+            text=message,
+            font=(self.font_family, 16),
+            text_color=self.primary_color
+        ).pack(pady=10)
 
     def show_detections_animated(self, index):
         if index >= len(self.detections):
