@@ -1,11 +1,14 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity, jwt_required
-
+from collections import defaultdict
 from src.face_detector_server import db
 from src.face_detector_server.models import Detection
-
+from urllib.parse import urlparse
 user_bp = Blueprint('user', __name__)
-
+from sqlalchemy import func
+from datetime import datetime
+from src.face_detector_server import db
+from src.face_detector_server.models import Detection
 
 @user_bp.route('/detections', methods=['GET'])
 @jwt_required()
@@ -43,45 +46,51 @@ def report():
 
     user_id = get_jwt_identity()
 
-    # 🔢 Count by website
-    top_sites = db.session.query(
-        Detection.website_url, func.count().label("count")
-    ).filter_by(user_id=user_id).group_by(Detection.website_url).order_by(func.count().desc()).limit(5).all()
 
-    top_websites = {site: count for site, count in top_sites}
+    # ✅ Fetch all detections (limit 500)
+    detections = Detection.query.filter_by(user_id=user_id) \
+        .order_by(Detection.timestamp.desc()) \
+        .limit(500).all()
 
-    # 📊 Count detections by year (for trend chart)
-    detections = Detection.query.filter_by(user_id=user_id).order_by(Detection.timestamp.desc()).limit(500).all()
+    # 🌐 Normalize website domains
+    def normalize_domain(url):
+        domain = urlparse(url).netloc.replace("www.", "")
+        if "instagram" in domain:
+            return "instagram.com"
+        if "twitter" in domain or "x.com" in domain:
+            return "twitter.com"
+        if "reddit" in domain:
+            return "reddit.com"
+        if "tiktok" in domain:
+            return "tiktok.com"
+        if "facebook" in domain:
+            return "facebook.com"
+        return domain
 
-    year_counts = defaultdict(int)
+    # 📊 Count by normalized domain
+    top_websites_count = defaultdict(int)
+    monthly_counts = defaultdict(int)
+
     for det in detections:
+        if det.website_url:
+            domain = normalize_domain(det.website_url)
+            top_websites_count[domain] += 1
+
         if det.timestamp:
-            year = det.timestamp.year
-            year_counts[year] += 1
+            month_key = det.timestamp.strftime('%Y-%m')  # e.g., "2025-05"
+            monthly_counts[month_key] += 1
 
-    MAX_YEARS = 5
-    trend_years = sorted(year_counts)[-MAX_YEARS:]  # Get the last MAX_YEARS
-    trend_counts = [year_counts[y] for y in trend_years]
+    # 📈 Sort monthly trends chronologically
+    trend_months = sorted(monthly_counts.keys())
+    trend_counts = [monthly_counts[m] for m in trend_months]
 
-    # 🗓️ Also calculate this_year vs last_year
-    current_year = datetime.datetime.now().year
-    last_year = current_year - 1
-
-    this_year_count = year_counts.get(current_year, 0)
-    last_year_count = year_counts.get(last_year, 0)
-
-    # 📈 Text summary
-    if last_year_count:
-        change = this_year_count - last_year_count
-        trend_text = f"You appeared {abs(change)}× {'more' if change > 0 else 'less'} this year than last year!"
-    else:
-        trend_text = "Not enough data to compare year-over-year."
+    # 📉 Sort top websites by count descending
+    sorted_top = sorted(top_websites_count.items(), key=lambda x: x[1], reverse=True)[:10]
+    top_websites = {site: count for site, count in sorted_top}
 
     return jsonify({
-        "top_websites": top_websites,
-        "this_year": this_year_count,
-        "last_year": last_year_count,
-        "trend_text": trend_text,
-        "trend_years": trend_years,
-        "trend_counts": trend_counts
+        "trend_months": trend_months,
+        "trend_counts": trend_counts,
+        "top_websites": top_websites
     })
+

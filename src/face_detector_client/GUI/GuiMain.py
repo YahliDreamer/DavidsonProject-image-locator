@@ -35,6 +35,10 @@ class GuiMain(ctk.CTk):
         self.login_frame.pack_forget()
         self.signup_frame.pack_forget()
         self.home_frame.pack_forget()
+        self.reports_frame.set_user_data({
+            "access_token": self.access_token,
+            "user_id": self.user_id
+        })
         self.reports_frame.pack(fill="both", expand=True)
         self.reports_frame.load_graphs()
 
