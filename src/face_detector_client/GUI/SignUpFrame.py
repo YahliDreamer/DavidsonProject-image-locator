@@ -1,3 +1,4 @@
+
 import requests
 import customtkinter as ctk
 from tkinter import filedialog
@@ -5,13 +6,16 @@ from tkinter import filedialog
 class SignUpFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
-
-        # 🌸 Set pink background
+        self.master = master
         self.configure(fg_color="#ffe6f0")  # Light pink
+
+        # 🔽 Scrollable container
+        scroll_frame = ctk.CTkScrollableFrame(self, width=500, height=600)
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         # 🌟 Title
         self.title_label = ctk.CTkLabel(
-            self,
+            scroll_frame,
             text="Create Your Account 🎀",
             font=("Comic Sans MS", 28, "bold"),
             text_color="#ff66b2"
@@ -19,49 +23,33 @@ class SignUpFrame(ctk.CTkFrame):
         self.title_label.pack(pady=(30, 20))
 
         # 📝 Name
-        self.name_label = ctk.CTkLabel(
-            self, text="Name", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
-        )
+        self.name_label = ctk.CTkLabel(scroll_frame, text="Name", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399")
         self.name_label.pack(pady=(10, 5))
-        self.name_entry = ctk.CTkEntry(
-            self, corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
-        )
+        self.name_entry = ctk.CTkEntry(scroll_frame, corner_radius=15, fg_color="#ffffff", text_color="#ff3399")
         self.name_entry.pack(pady=(0, 15), ipadx=10, ipady=5)
 
         # ✉️ Email
-        self.email_label = ctk.CTkLabel(
-            self, text="Email", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
-        )
+        self.email_label = ctk.CTkLabel(scroll_frame, text="Email", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399")
         self.email_label.pack(pady=(10, 5))
-        self.email_entry = ctk.CTkEntry(
-            self, corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
-        )
+        self.email_entry = ctk.CTkEntry(scroll_frame, corner_radius=15, fg_color="#ffffff", text_color="#ff3399")
         self.email_entry.pack(pady=(0, 15), ipadx=10, ipady=5)
 
         # 🔒 Password
-        self.password_label = ctk.CTkLabel(
-            self, text="Password", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
-        )
+        self.password_label = ctk.CTkLabel(scroll_frame, text="Password", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399")
         self.password_label.pack(pady=(10, 5))
-        self.password_entry = ctk.CTkEntry(
-            self, show="*", corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
-        )
+        self.password_entry = ctk.CTkEntry(scroll_frame, show="*", corner_radius=15, fg_color="#ffffff", text_color="#ff3399")
         self.password_entry.pack(pady=(0, 15), ipadx=10, ipady=5)
 
         # 📱 Phone
-        self.phone_label = ctk.CTkLabel(
-            self, text="Phone", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399"
-        )
+        self.phone_label = ctk.CTkLabel(scroll_frame, text="Phone", font=("Comic Sans MS", 16, "bold"), text_color="#ff3399")
         self.phone_label.pack(pady=(10, 5))
-        self.phone_entry = ctk.CTkEntry(
-            self, corner_radius=15, fg_color="#ffffff", text_color="#ff3399"
-        )
+        self.phone_entry = ctk.CTkEntry(scroll_frame, corner_radius=15, fg_color="#ffffff", text_color="#ff3399")
         self.phone_entry.pack(pady=(0, 20), ipadx=10, ipady=5)
 
         # 🖼️ Upload Image Button
         self.image_path = ""
         self.upload_button = ctk.CTkButton(
-            self,
+            scroll_frame,
             text="📸 Upload Image",
             command=self.upload_image,
             fg_color="#ff66b2",
@@ -73,7 +61,7 @@ class SignUpFrame(ctk.CTkFrame):
 
         # ✅ Submit Button
         self.submit_button = ctk.CTkButton(
-            self,
+            scroll_frame,
             text="✨ Submit ✨",
             command=self.signup,
             fg_color="#ff66b2",

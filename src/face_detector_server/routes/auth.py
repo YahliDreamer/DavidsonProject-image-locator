@@ -38,12 +38,12 @@ def register():
 
     if user:
         user_data = dict(image_url=user.image_url, monitor_enabled=user.monitor_enabled, email=user.email, id=user.id)
-        # ✅ Start background face monitoring
+        #  Start background face monitoring
         try:
             start_monitoring_thread(current_app._get_current_object(), user_data)
-            print(f"[✅] Monitoring started for {user.email}")
+            print(f" Monitoring started for {user.email}")
         except Exception as e:
-            print(f"[❌] Error starting monitoring: {e}")
+            print(f" Error starting monitoring: {e}")
 
         return jsonify({'message': 'User registered successfully'}), 201
 
@@ -58,7 +58,8 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
-        access_token = create_access_token(identity=str(user.id))  # ✅ force to string
+        # generate new token to identify user session
+        access_token = create_access_token(identity=str(user.id))  #  force to string
 
         return jsonify({
             'access_token': access_token,
@@ -69,6 +70,7 @@ def login():
 
 
     return jsonify({'error': 'Invalid email or password'}), 401
+
 
 
 # **📌 Secure Logout**
@@ -93,22 +95,24 @@ def register_user(name, email, password, image_url):
         password_hash=hashed_password,
         image_url=image_url
     )
+    # add new user to SQL database
     db.session.add(new_user)
     db.session.commit()
 
     return new_user
 
 
-def authenticate_user(email, password):
-    """
-    Authenticates a user by checking their email and password.
-    Returns a JWT token if authentication is successful.
-    """
-    user = User.query.filter_by(email=email).first()
-
-    if user and user.check_password(password):
-        return create_access_token(identity=user.id)  # Generate JWT token
-
-    return None  # Authentication failed
+#
+# def authenticate_user(email, password):
+#     """
+#     Authenticates a user by checking their email and password.
+#     Returns a JWT token if authentication is successful.
+#     """
+#     user = User.query.filter_by(email=email).first()
+#
+#     if user and user.check_password(password):
+#         return create_access_token(identity=user.id)  # Generate JWT token
+#
+#     return None  # Authentication failed
 
 
