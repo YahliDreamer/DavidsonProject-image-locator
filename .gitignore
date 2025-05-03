@@ -7,3 +7,6 @@ src/face_detector_server/__pycache__/
 src/face_detector_client/GUI/__pycache__/
 src/face_detector_client/__pycache__/
 __pycache__/
+migrations/
+venv/
+test_images/
