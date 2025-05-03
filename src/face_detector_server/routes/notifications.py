@@ -2,7 +2,10 @@ from twilio.rest import Client
 import smtplib
 from email.mime.text import MIMEText
 
+
 def send_email_alert(user_email, link, image_url):
+    if not user_email:
+        return
     sender_email = "your_email@gmail.com"
     sender_password = "your_password"
 
@@ -19,21 +22,14 @@ def send_email_alert(user_email, link, image_url):
         server.sendmail(sender_email, user_email, msg.as_string())
 
 
+
 # Twilio credentials (Replace with your actual Twilio details)
 TWILIO_SID = "AC7f48128567bf744234f2db4098e64225"
 TWILIO_AUTH = "147283eafdf21388019cf8e6be32f8e8"
 TWILIO_PHONE = r"+18777804236"
-
-
 def send_alert(user, website):
-    """
-    Sends an SMS alert to the user when their face is found online.
-
-    :param user: User object (contains phone number)
-    :param website: URL where the user's face was detected
-    """
-    if not user.phone:
-        print("User has no phone number linked. Skipping SMS alert.")
+    if not user.notify_sms or not user.phone_number:
+        print("User opted out of SMS or has no phone number.")
         return
 
     client = Client(TWILIO_SID, TWILIO_AUTH)
@@ -45,6 +41,6 @@ def send_alert(user, website):
             from_=TWILIO_PHONE,
             body=message_body
         )
-        print(f"✅ SMS sent to {user.phone}: {message.sid}")
+        print(f" SMS sent to {user.phone_number}: {message.sid}")
     except Exception as e:
-        print(f"❌ Failed to send SMS: {e}")
+        print(f" Failed to send SMS: {e}")

@@ -20,11 +20,15 @@ def register():
     """
     API endpoint to register a new user.
     """
-    username = request.form['username']
-    email = request.form['email']
-    password = request.form['password']
-    image = request.files['image']
-    # ✅ Save the image to disk
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    phone_number = request.form.get('phone_number')
+    notify_email = request.form.get('notify_email') == '1'
+    notify_sms = request.form.get('notify_sms') == '1'
+    image = request.files.get('image')
+
+    #  Save the image to disk
     image_url = None
     if image:
         filename = secure_filename(image.filename)
@@ -34,7 +38,15 @@ def register():
     else:
         return jsonify({'error': 'No image uploaded'}), 400
 
-    user = register_user(username, email, password, image_url)
+    user = register_user(
+        name=username,
+        email=email,
+        password=password,
+        image_url=image_url,
+        phone_number=phone_number,
+        notify_email=notify_email,
+        notify_sms=notify_sms
+    )
 
     if user:
         user_data = dict(image_url=user.image_url, monitor_enabled=user.monitor_enabled, email=user.email, id=user.id)
@@ -81,7 +93,7 @@ def logout():
     return redirect(url_for('login'))
 
 
-def register_user(name, email, password, image_url):
+def register_user(name, email, password, image_url, phone_number=None, notify_email=False, notify_sms=False):
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
         return None  # User already exists
@@ -93,7 +105,11 @@ def register_user(name, email, password, image_url):
         username=name,
         email=email,
         password_hash=hashed_password,
-        image_url=image_url
+        image_url=image_url,
+        phone_number=phone_number,
+        notify_email=notify_email,
+        notify_sms=notify_sms,
+        monitor_enabled=True
     )
     # add new user to SQL database
     db.session.add(new_user)

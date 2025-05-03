@@ -71,7 +71,13 @@ class SignUpFrame(ctk.CTkFrame):
         )
         self.submit_button.pack(pady=(10, 10), ipadx=10, ipady=5)
 
-        # 🔙 Back Button
+        # 📩 Notification Checkboxes
+        self.notify_email_check = ctk.CTkCheckBox(scroll_frame, text="📩 Email Notification")
+        self.notify_email_check.pack(pady=(5, 5))
+        self.notify_sms_check = ctk.CTkCheckBox(scroll_frame, text="📱 SMS Notification")
+        self.notify_sms_check.pack(pady=(5, 15))
+
+        # 🔙 Back Button (outside scroll frame)
         self.back_button = ctk.CTkButton(
             self,
             text="🔙 Back to Login",
@@ -91,26 +97,33 @@ class SignUpFrame(ctk.CTkFrame):
         self.image_path = path
 
     def signup(self):
-        data = {
-            "username": self.name_entry.get(),
-            "email": self.email_entry.get(),
-            "password": self.password_entry.get(),
-            "phone": self.phone_entry.get()
-        }
-
         if not self.image_path:
             print("❌ Please upload an image.")
             return
 
         try:
+            image_name = self.image_path.split("/")[-1]
+
             with open(self.image_path, "rb") as img_file:
-                files = {"image": img_file}
-                response = requests.post("http://localhost:5000/auth/register", data=data, files=files)
+                payload = {
+                    "username": self.name_entry.get(),
+                    "email": self.email_entry.get(),
+                    "password": self.password_entry.get(),
+                    "phone_number": self.phone_entry.get(),
+                    "notify_email": str(self.notify_email_check.get()),  # "0" or "1"
+                    "notify_sms": str(self.notify_sms_check.get()),  # "0" or "1"
+                }
+                files = {
+                    "image": (image_name, img_file)
+                }
+
+                response = requests.post("http://localhost:5000/auth/register", data=payload, files=files)
 
             if response.status_code == 201:
                 print("✅ Registered successfully!")
                 self.master.show_login()
             else:
                 print("❌ Registration failed:", response.text)
+
         except Exception as e:
             print(f"❌ Error during registration: {e}")

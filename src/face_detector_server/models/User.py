@@ -16,6 +16,9 @@ class User(UserMixin,db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     monitor_enabled = db.Column(Boolean, default=True)
+    notify_email = db.Column(db.Boolean, default=False)
+    notify_sms = db.Column(db.Boolean, default=False)
+    phone_number = db.Column(db.String(20))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password).decode('utf-8')
