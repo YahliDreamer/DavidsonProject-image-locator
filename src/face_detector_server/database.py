@@ -23,7 +23,7 @@ def save_detection(user_id, image_url, website_url):
     new_detection = Detection(user_id=user_id, image_url=image_url, website_url=website_url)
     db.session.add(new_detection)
     db.session.commit()
-    print(f"💾 Detection saved for user {user_id} to {website_url}")
+    print(f" Detection saved for user {user_id} to {website_url}")
 
 
 def get_all_users():

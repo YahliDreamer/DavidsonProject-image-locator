@@ -6,17 +6,19 @@ from email.mime.text import MIMEText
 def send_email_alert(user_email, link, image_url):
     if not user_email:
         return
-    sender_email = "your_email@gmail.com"
-    sender_password = "your_password"
+    sender_email = "yahli.dreamer@gmail.com"
+    sender_password = "123456"
 
     subject = "Face Match Found!"
     body = f"Your face was detected on this website: {link}\nImage: {image_url}"
+
 
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = sender_email
     msg["To"] = user_email
 
+    # sending mail
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, user_email, msg.as_string())
@@ -33,7 +35,7 @@ def send_alert(user, website):
         return
 
     client = Client(TWILIO_SID, TWILIO_AUTH)
-    message_body = f"🔔 Alert! Your face was found on {website}. Check it now!"
+    message_body = f" Alert! Your face was found on {website}. Check it now!"
 
     try:
         message = client.messages.create(

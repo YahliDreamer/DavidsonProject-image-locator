@@ -7,21 +7,25 @@ from src.face_detector_server import db
 from src.face_detector_server.models import Detection
 
 
+# define main menu category
 app = Blueprint('main', __name__)
 
 
-# **📌 Homepage - Display User's Online Presence**
+# ** Homepage - Display User's Online Presence**
 @app.route('/')
-@login_required
+@login_required # only connected user can enter
 def home():
+    # fetch all detections for current user
     detections = Detection.query.filter_by(user_id=current_user.id).all()
-    labels = [d.website_url for d in detections]
+
+    labels = [d.website_url for d in detections] #builds a list of all the websites
+    # list of web-site count for each of the detections
     values = [1] * len(detections)  # Each website is counted once
 
     return render_template('home.html', detections=detections, labels=labels, values=values)
 
 
-# **📌 Reverse Image Search (Triggered on Login)**
+# ** Reverse Image Search (Triggered on Login)**
 @app.route('/search')
 @login_required
 def search():
@@ -34,5 +38,6 @@ def search():
         send_alert(current_user, result['link'])
 
     db.session.commit()
+
     return redirect(url_for('home'))
 

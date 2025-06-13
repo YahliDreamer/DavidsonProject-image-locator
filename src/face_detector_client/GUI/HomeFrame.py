@@ -25,7 +25,7 @@ class HomeFrame(ctk.CTkFrame):
         self.detections = []
         self.detections_timeout = 30
 
-        # 🚀 Title
+        #  Title
         self.title_label = ctk.CTkLabel(
             self,
             text="HOME",
@@ -34,7 +34,7 @@ class HomeFrame(ctk.CTkFrame):
         )
         self.title_label.pack(pady=(20, 10))
 
-        # 🚀 Profile Card
+        #  Profile Card
         self.profile_frame = ctk.CTkFrame(self, corner_radius=15, fg_color=self.secondary_color)
         self.profile_frame.pack(pady=10, padx=20, fill="x")
 
@@ -49,10 +49,10 @@ class HomeFrame(ctk.CTkFrame):
         )
         self.profile_text.pack(side="left", padx=10)
 
-        # 🚀 View Reports Button
+        #  View Reports Button
         self.report_button = ctk.CTkButton(
             self,
-            text="📊 View Reports",
+            text=" View Reports",
             height=45,
             corner_radius=10,
             font=(self.font_family, 16, "bold"),
@@ -63,10 +63,10 @@ class HomeFrame(ctk.CTkFrame):
         )
         self.report_button.pack(pady=(10, 10))
 
-        # 🚀 Change Theme Button
+        #  Change Theme Button
         self.color_button = ctk.CTkButton(
             self,
-            text="🎨 Switch Theme",
+            text=" Switch Theme",
             height=40,
             corner_radius=10,
             font=(self.font_family, 14, "bold"),
@@ -77,12 +77,13 @@ class HomeFrame(ctk.CTkFrame):
         )
         self.color_button.pack(pady=(0, 20))
 
-        # 🚀 Scrollable detection container
+        #  Scrollable detection container
         self.scrollable_container = ctk.CTkScrollableFrame(
             self, width=600, height=500, fg_color=self.secondary_color
         )
         self.scrollable_container.pack(padx=20, pady=10, fill="both", expand=True)
 
+    # store access_token and user_id that we got from the server
     def set_user_data(self, user_data):
         self.access_token = user_data.get('access_token', '')
         username = user_data.get('username', 'User')
@@ -104,7 +105,7 @@ class HomeFrame(ctk.CTkFrame):
                 self.profile_img = ctk.CTkImage(image_data, size=(80, 80))
                 self.profile_pic_label.configure(image=self.profile_img, text="")
             except Exception as e:
-                print("❌ Error loading profile image:", e)
+                print(" Error loading profile image:", e)
 
         self.after(100, self.load_detections)
 
@@ -148,7 +149,7 @@ class HomeFrame(ctk.CTkFrame):
             widget.configure(fg_color=self.secondary_color)
 
     def load_detections(self):
-        elapsed_time = 0
+        elapsed_time = 0 # time passed
         sleep_interval = 5
         ctk.CTkLabel(
             self.scrollable_container,
@@ -166,7 +167,7 @@ class HomeFrame(ctk.CTkFrame):
                     headers={"Authorization": f"Bearer {self.access_token}"}
                     )
                 if response.status_code != 200:
-                    print("❌ Failed to load detections:", response.text)
+                    print(" Failed to load detections:", response.text)
                     continue
 
                 self.detections = response.json()
@@ -181,9 +182,9 @@ class HomeFrame(ctk.CTkFrame):
                     self.show_detections_animated(0)
                     return
 
-                message = f"❌ Failed to load detections after timeout of {self.detections_timeout} seconds"
+                message = f" Failed to load detections after timeout of {self.detections_timeout} seconds"
         except Exception as e:
-            message = f"❌ Error loading detections:{e}"
+            message = f" Error loading detections:{e}"
             print(message)
 
         ctk.CTkLabel(

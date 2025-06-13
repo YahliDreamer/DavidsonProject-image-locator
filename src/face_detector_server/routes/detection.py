@@ -1,22 +1,19 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from collections import defaultdict
-from src.face_detector_server import db
-from src.face_detector_server.models import Detection
 from urllib.parse import urlparse
-user_bp = Blueprint('user', __name__)
-from sqlalchemy import func
-from datetime import datetime
-from src.face_detector_server import db
 from src.face_detector_server.models import Detection
+
+user_bp = Blueprint('user', __name__)
 
 @user_bp.route('/detections', methods=['GET'])
 @jwt_required()
 def get_detections():
+    # retrieves the identity of the authenticated user
     user_id = get_jwt_identity()
     limit = request.args.get('limit', default=50, type=int)
 
     try:
+        
         user_id = int(user_id)
     except (ValueError, TypeError):
         return jsonify({"error": "Invalid user ID"}), 400
@@ -40,19 +37,17 @@ def get_detections():
 @user_bp.route('/report')
 @jwt_required()
 def report():
-    from sqlalchemy import func
+
     from collections import defaultdict
-    import datetime
 
     user_id = get_jwt_identity()
 
-
-    # ✅ Fetch all detections (limit 500)
+    #  Fetch all detections (limit 500)
     detections = Detection.query.filter_by(user_id=user_id) \
         .order_by(Detection.timestamp.desc()) \
         .limit(500).all()
 
-    # 🌐 Normalize website domains
+    # Normalize website domains
     def normalize_domain(url):
         domain = urlparse(url).netloc.replace("www.", "")
         if "instagram" in domain:
@@ -67,7 +62,8 @@ def report():
             return "facebook.com"
         return domain
 
-    # 📊 Count by normalized domain
+    #  Count by normalized domain
+    # initialize empty dictionary
     top_websites_count = defaultdict(int)
     monthly_counts = defaultdict(int)
 
@@ -80,11 +76,11 @@ def report():
             month_key = det.timestamp.strftime('%Y-%m')  # e.g., "2025-05"
             monthly_counts[month_key] += 1
 
-    # 📈 Sort monthly trends chronologically
+    #  Sort monthly trends chronologically
     trend_months = sorted(monthly_counts.keys())
     trend_counts = [monthly_counts[m] for m in trend_months]
 
-    # 📉 Sort top websites by count descending
+    #  Sort top websites by count descending
     sorted_top = sorted(top_websites_count.items(), key=lambda x: x[1], reverse=True)[:10]
     top_websites = {site: count for site, count in sorted_top}
 

@@ -5,10 +5,10 @@ class LoginFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        # 🌸 Set pink background
+        #  Set pink background
         self.configure(fg_color="#ffe6f0")  # Light pink
 
-        # 🌟 Title label
+        #  Title label
         self.title_label = ctk.CTkLabel(
             self,
             text="Welcome Back 💖",
@@ -17,7 +17,7 @@ class LoginFrame(ctk.CTkFrame):
         )
         self.title_label.pack(pady=(40, 20))
 
-        # ✉️ Email label and entry
+        # ️ Email label and entry
         self.email_label = ctk.CTkLabel(
             self,
             text="Email",
@@ -33,7 +33,7 @@ class LoginFrame(ctk.CTkFrame):
         )
         self.email_entry.pack(pady=(0, 20), ipadx=10, ipady=5)
 
-        # 🔒 Password label and entry
+        #  Password label and entry
         self.password_label = ctk.CTkLabel(
             self,
             text="Password",
@@ -50,7 +50,7 @@ class LoginFrame(ctk.CTkFrame):
         )
         self.password_entry.pack(pady=(0, 20), ipadx=10, ipady=5)
 
-        # 💎 Login button
+        #  Login button
         self.login_button = ctk.CTkButton(
             self,
             text="✨ Login ✨",
@@ -62,7 +62,7 @@ class LoginFrame(ctk.CTkFrame):
         )
         self.login_button.pack(pady=(10, 10), ipadx=10, ipady=5)
 
-        # 🎀 Sign up button
+        #  Sign up button
         self.signup_button = ctk.CTkButton(
             self,
             text="🎀 Sign Up 🎀",
@@ -87,11 +87,11 @@ class LoginFrame(ctk.CTkFrame):
         })
 
         if response.status_code == 200:
-            print("✅ Login successful!")
+            print(" Login successful!")
             user_data = response.json()
-            print("📦 user_data received in GUI:", user_data)
+            print(" user_data received in GUI:", user_data)
             self.master.access_token = user_data["access_token"]
             self.master.user_id = user_data["user_id"]
             self.master.show_home(user_data=user_data)
         else:
-            print("❌ Login failed:", response.text)
+            print(" Login failed:", response.text)

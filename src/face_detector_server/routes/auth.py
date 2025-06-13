@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 from src.face_detector_server.config import UPLOAD_FOLDER
 from src.face_detector_server.models import User
 from src.face_detector_server import db
-# from face_monitor import start_monitoring_thread
 from src.face_detector_server.face_recognition.face_monitor import start_monitoring_thread
 
 auth_bp = Blueprint('auth', __name__)
@@ -29,16 +28,17 @@ def register():
     image = request.files.get('image')
 
     #  Save the image to disk
-    image_url = None
+    image_url = None  # todo check why not used
+
     if image:
         filename = secure_filename(image.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         image.save(filepath)
-        image_url = filepath  # ✅ This is what should be saved in DB
+        image_url = filepath
     else:
         return jsonify({'error': 'No image uploaded'}), 400
 
-    user = register_user(
+    user: User or None = register_user(
         name=username,
         email=email,
         password=password,
@@ -85,7 +85,7 @@ def login():
 
 
 
-# **📌 Secure Logout**
+# ** Secure Logout**
 @auth_bp.route("/logout")
 @login_required
 def logout():
@@ -93,12 +93,12 @@ def logout():
     return redirect(url_for('login'))
 
 
-def register_user(name, email, password, image_url, phone_number=None, notify_email=False, notify_sms=False):
+def register_user(name, email, password, image_url, phone_number=None, notify_email=False, notify_sms=False) -> User or None:
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
         return None  # User already exists
 
-    # ✅ Properly hash the password
+    #  Properly hash the password
     hashed_password = generate_password_hash(password)
 
     new_user = User(
@@ -116,19 +116,3 @@ def register_user(name, email, password, image_url, phone_number=None, notify_em
     db.session.commit()
 
     return new_user
-
-
-#
-# def authenticate_user(email, password):
-#     """
-#     Authenticates a user by checking their email and password.
-#     Returns a JWT token if authentication is successful.
-#     """
-#     user = User.query.filter_by(email=email).first()
-#
-#     if user and user.check_password(password):
-#         return create_access_token(identity=user.id)  # Generate JWT token
-#
-#     return None  # Authentication failed
-
-
